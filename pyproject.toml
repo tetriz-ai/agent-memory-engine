@@ -1,0 +1,101 @@
+[build-system]
+requires = ["hatchling>=1.27", "hatch-fancy-pypi-readme>=24.1"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tetriz-agent-memory-engine"
+dynamic = ["version", "readme"]
+description = "Extract typed, tagged, evidence-checked memories from your local Claude Code sessions."
+license = "MIT"
+license-files = ["LICENSE", "NOTICE"]
+requires-python = ">=3.12"
+authors = [{ name = "tetriz-ai" }]
+keywords = ["claude-code", "memory", "llm", "gemini", "coding-agent"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
+    "Topic :: Software Development",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/tetriz-ai/agent-memory-engine"
+Repository = "https://github.com/tetriz-ai/agent-memory-engine"
+Issues = "https://github.com/tetriz-ai/agent-memory-engine/issues"
+Changelog = "https://github.com/tetriz-ai/agent-memory-engine/blob/main/CHANGELOG.md"
+
+[project.scripts]
+tetriz-agent-memory-engine = "agent_memory_engine.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest==9.1.1",
+    "ruff==0.16.9",
+    "mypy==2.3.1",
+    "jsonschema==4.26.0",
+]
+
+[tool.hatch.version]
+path = "src/agent_memory_engine/__init__.py"
+
+# PyPI leaves relative links as written and does not draw Mermaid, so the long description is the
+# README with in-repo links made absolute and the diagram replaced by a link to it on GitHub.
+[tool.hatch.metadata.hooks.fancy-pypi-readme]
+content-type = "text/markdown"
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.fragments]]
+path = "README.md"
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+pattern = '(?s)```mermaid\n.*?```'
+replacement = '[The diagram of one run is in the README on GitHub.](https://github.com/tetriz-ai/agent-memory-engine#how-it-works)'
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+pattern = '(src|srcset)="(?!https?://)([^"]+)"'
+replacement = '\1="https://raw.githubusercontent.com/tetriz-ai/agent-memory-engine/main/\2"'
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+pattern = '\]\((?!https?://|#)([^)]+)\)'
+replacement = '](https://github.com/tetriz-ai/agent-memory-engine/blob/main/\1)'
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+pattern = '\]\(#'
+replacement = '](https://github.com/tetriz-ai/agent-memory-engine#'
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/agent_memory_engine"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "examples", "docs", "README.md", "LICENSE", "NOTICE", "CHANGELOG.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+# A passed test's tmp_path (its HOME and every mkdtemp) is removed; a failed one is kept to inspect.
+tmp_path_retention_policy = "failed"
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+src = ["src", "tests", "examples"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+# Test stubs keep fixture tables as plain class attributes; they are never mutated.
+"tests/*" = ["RUF012"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["src"]
+warn_unused_ignores = true
+check_untyped_defs = true

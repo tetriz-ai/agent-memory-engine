@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv sync --locked)",
+      "Bash(uv run pytest)",
+      "Bash(uv run ruff check .)",
+      "Bash(uv run ruff format --check .)",
+      "Bash(uv run mypy)",
+      "Bash(scripts/run-examples.sh)",
+      "Bash(scripts/check-package.sh)",
+      "Bash(uv run python tests/fixtures/make_storefront_session.py --check)"
+    ]
+  }
+}

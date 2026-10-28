@@ -1,0 +1,23 @@
+<!-- Copyright 2026 Workloom Solutions Private Limited -->
+<!-- SPDX-License-Identifier: MIT -->
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="240" viewBox="0 0 880 240" role="img" aria-labelledby="title desc">
+  <title id="title">agent-memory-engine</title>
+  <desc id="desc">Turn Claude Code sessions into typed, tagged memories with checked source quotes. Sessions are read, a model proposes lessons, and code checks their cited evidence.</desc>
+  <rect width="880" height="240" rx="16" fill="#0f172a"/>
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+    <text x="36" y="54" font-size="34" font-weight="700" fill="#f1f5f9">agent-memory-engine</text>
+    <text x="36" y="86" font-size="18" fill="#b8c5d5">Keep the lesson. Keep the source.</text>
+    <text x="36" y="111" font-size="15" fill="#b8c5d5">Typed, tagged memories from your Claude Code sessions.</text>
+    <rect x="36" y="140" width="232" height="70" rx="10" fill="#182438" stroke="#334155"/>
+    <text x="52" y="165" font-size="12" font-weight="700" fill="#5eead4">01 · READ SESSIONS</text>
+    <text x="52" y="190" font-size="15" fill="#f1f5f9">Corrections and decisions</text>
+    <path d="M279 175h20m-6-5 6 5-6 5" fill="none" stroke="#5eead4" stroke-width="2"/>
+    <rect x="312" y="140" width="232" height="70" rx="10" fill="#182438" stroke="#334155"/>
+    <text x="328" y="165" font-size="12" font-weight="700" fill="#5eead4">02 · MODEL PROPOSES</text>
+    <text x="328" y="190" font-size="15" fill="#f1f5f9">Lessons with source quotes</text>
+    <path d="M555 175h20m-6-5 6 5-6 5" fill="none" stroke="#5eead4" stroke-width="2"/>
+    <rect x="588" y="140" width="256" height="70" rx="10" fill="#173c3d" stroke="#334155"/>
+    <text x="604" y="165" font-size="12" font-weight="700" fill="#5eead4">03 · CODE CHECKS EVIDENCE</text>
+    <text x="604" y="190" font-size="15" fill="#f1f5f9">Memories you can inspect</text>
+  </g>
+</svg>

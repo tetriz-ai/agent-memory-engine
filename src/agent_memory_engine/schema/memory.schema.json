@@ -1,0 +1,461 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/tetriz-ai/agent-memory-engine/main/src/agent_memory_engine/schema/memory.schema.json",
+  "title": "A merged memory",
+  "description": "One memory in the merged output (`memories.jsonl` of a run). It carries the merge-only corroboration counts under `provenance.corroboration`, so it validates merged output; the per-arm files under `arms/` hold the same content fields flat (`scope_level`, `temporal_kind`, ...) and are not validated against it. A memory is one durable thing worth remembering, learned in a conversation and backed by verified quotes. Every field is either MODEL-EMITTED (the model proposes it; code validates or softens it) or CODE-STAMPED (code owns it: identity, provenance, corroboration, the evidence gate). TAGS: `tags` is a typed object over six axes. This is memory format v3.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "memory_id",
+    "statement",
+    "description",
+    "type",
+    "secondary_type",
+    "scope",
+    "tags",
+    "generality",
+    "review",
+    "intention_meta",
+    "decision_outcome",
+    "temporal",
+    "disposition",
+    "provenance",
+    "evidence"
+  ],
+  "properties": {
+    "memory_id": {
+      "type": "string",
+      "description": "CODE-STAMPED stable identity: the first 24 hex chars of sha256 over the normalized statement. Two memories with the same normalized statement share an id (that is how exact restatements fold).",
+      "pattern": "^[0-9a-f]{24}$"
+    },
+    "statement": {
+      "type": "string",
+      "description": "MODEL-EMITTED one-line assertion of the thing to remember — terse and self-contained. May be a reconciled/synthesized rephrasing of several member memories."
+    },
+    "description": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "MODEL-EMITTED optional longer prose companion to `statement` (2-4 sentences: the why/symptom/consequence/nuance the terse statement cannot carry). Null when not emitted."
+    },
+    "type": {
+      "type": "string",
+      "description": "MODEL-EMITTED (code-validated) PRIMARY kind of memory. `decision` carries its adopted-vs-rejected outcome in `decision_outcome`; `intention` is a captured 'we should do X' nudge that is held for review, never loaded without a human check. A memory that is genuinely two kinds at once may also carry a `secondary_type`.",
+      "enum": [
+        "fact",
+        "preference",
+        "decision",
+        "convention",
+        "failed-attempt",
+        "caution",
+        "intention"
+      ]
+    },
+    "secondary_type": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "MODEL-EMITTED optional SECOND kind of memory — a single field (never a list) for a memory that is genuinely two types at once (e.g. a config choice that is both a `decision` and a `fact`). One of the same type values, and always distinct from the primary `type`; null when the memory is a single kind. The primary `type` remains authoritative — provenance/routing keys on it, not on this.",
+      "enum": [
+        "fact",
+        "preference",
+        "decision",
+        "convention",
+        "failed-attempt",
+        "caution",
+        "intention",
+        null
+      ]
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identified",
+        "applicable"
+      ],
+      "description": "CODE-ASSEMBLED nested scope: `identified` is where the memory was OBSERVED; `applicable` is where it APPLIES when that differs (null in the common case).",
+      "properties": {
+        "identified": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "level",
+            "ref"
+          ],
+          "description": "The IDENTIFIED scope — where the memory was OBSERVED.",
+          "properties": {
+            "level": {
+              "type": "string",
+              "description": "MODEL-EMITTED (code-derived/validated) fixed-enum breadth of where the memory was observed. Pairs with `ref` (the specific target).",
+              "enum": [
+                "personal",
+                "dir",
+                "service",
+                "repo",
+                "team",
+                "org"
+              ]
+            },
+            "ref": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "MODEL-EMITTED specific target the identified scope points at, in ONE consistent format per level: personal -> null; dir -> the directory path; service -> the BARE service name, lowercased, no owner/repo qualifier (e.g. 'billing'); repo -> '<owner>/<repo>' (e.g. 'acme/shop'); team -> the team name; org -> the provider or org name (e.g. 'aws', 'acme'), which need not be the user's own org. Null for `personal`."
+            }
+          }
+        },
+        "applicable": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "level",
+            "ref"
+          ],
+          "description": "MODEL-EMITTED (code-carried on merge) optional APPLICABLE scope — where the memory APPLIES, when that differs from the identified scope it was observed at (e.g. a dir-level convention that actually holds repo-wide). Null when applicability equals the identified scope (the common case), so a non-null object always means 'applies somewhere other than where it was seen'.",
+          "properties": {
+            "level": {
+              "type": "string",
+              "description": "The applicable-scope breadth. Same fixed enum as the identified level.",
+              "enum": [
+                "personal",
+                "dir",
+                "service",
+                "repo",
+                "team",
+                "org"
+              ]
+            },
+            "ref": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Target of the applicable scope, using the same per-level `ref` convention as the identified scope. Null for `personal`."
+            }
+          }
+        }
+      }
+    },
+    "tags": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "CODE-COMBINED typed tag object over six axes; every axis is always present. Two axes are single-valued (domain, activity; null when the memory carries none); four are open, multi-valued lists (component, tech, concept, keyword; keyword is the catch-all). The extraction model proposes each memory's tags; an answer given as a list of strings such as `tech:go` is decoded into this object. On reconcile the single-value axes take the first non-null value in member order; on merge the majority value. Under both rules every other value moves to keyword, so nothing is dropped. Open axes are unioned (distinct, first-seen order). Never authored by the reconcile or synthesis model.",
+      "required": [
+        "domain",
+        "activity",
+        "component",
+        "tech",
+        "concept",
+        "keyword"
+      ],
+      "properties": {
+        "domain": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Single-valued top-level subject area. OPEN VALUE — there is no hardcoded vocabulary; any short label the model chose (e.g. 'ci-cd', 'backend', 'database'). Null if the memory carries no domain."
+        },
+        "activity": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Single-valued: the work mode in which a future agent should see this memory. At extraction the model picks from a closed list (coding, reviewing, debugging, deploying, planning, incident, onboarding, researching, analyzing, experimenting, training, operating, writing, designing) or null; the merged output does not re-check the list. A second mode belongs in the open `concept` axis, not a second activity."
+        },
+        "component": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Open, multi-valued: named components, modules, services or tools the memory touches (e.g. 'cart-service')."
+        },
+        "tech": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Open, multi-valued: technologies, languages, frameworks or vendors (e.g. 'go', 'postgres', 'nextjs')."
+        },
+        "concept": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Open, multi-valued: concepts, ideas or patterns the memory is about (e.g. 'idempotency', 'rate-limiting')."
+        },
+        "keyword": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Open, multi-valued CATCH-ALL: free keywords that fit no other axis, plus any single-value-axis value demoted during a merge conflict (so a losing domain/activity is preserved here rather than dropped)."
+        }
+      },
+      "examples": [
+        {
+          "domain": "developer-tooling",
+          "activity": "coding",
+          "component": [
+            "worktree-setup"
+          ],
+          "tech": [
+            "pnpm"
+          ],
+          "concept": [],
+          "keyword": [
+            "node_modules"
+          ]
+        }
+      ]
+    },
+    "generality": {
+      "type": "string",
+      "description": "MODEL-EMITTED (code-validated) whether the memory is a one-off instance fact or a reusable principle.",
+      "enum": [
+        "instance-specific",
+        "general-principle"
+      ]
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status"
+      ],
+      "description": "CODE-STAMPED: whether the memory is safe to load without a human check. An `intention` is always forced to hold-for-review; everything else defaults to active.",
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "active = safe to load without a human check; hold-for-review = captured, but a human checks it before it is loaded (always so for intentions).",
+          "enum": [
+            "active",
+            "hold-for-review"
+          ]
+        }
+      }
+    },
+    "intention_meta": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "description": "MODEL-EMITTED, for `type: intention` only: what to do and how to know it is done. Null for every other type.",
+      "properties": {
+        "what": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The intended action ('we should do X')."
+        },
+        "done_check": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "How to tell the intention has been carried out."
+        }
+      }
+    },
+    "decision_outcome": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "MODEL-EMITTED (code-carried on merge) a `decision`'s outcome: what was adopted and what was rejected. On merge it is carried from the latest-dated decision member, and divergent outcomes are flagged in the text. Null for non-decisions."
+    },
+    "temporal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "volatility",
+        "valid_as_of"
+      ],
+      "description": "CODE-CARRIED (from members, latest-wins) grouped temporal rich-meta: the decay class, coarse rot-speed, and the free anchor for when the fact was asserted true. All three default null and travel as a coherent unit from the most-recent member.",
+      "properties": {
+        "kind": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "MODEL-EMITTED (code-softened) decay class of the memory. Unknown values coerce to null rather than dropping the memory.",
+          "enum": [
+            "timeless",
+            "dated",
+            "episodic",
+            "until-event",
+            null
+          ]
+        },
+        "volatility": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "MODEL-EMITTED (code-softened) coarse rot-speed heuristic — how fast this memory is likely to go stale. Null when not emitted.",
+          "enum": [
+            "low",
+            "med",
+            "high",
+            null
+          ]
+        },
+        "valid_as_of": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "MODEL-EMITTED free anchor for when the fact was asserted true (e.g. '2026-05-12'), resolved against the session date. Not an enum. Null when the window gives no anchor."
+        }
+      }
+    },
+    "disposition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "level"
+      ],
+      "description": "CODE-CARRIED human-review trust — a DIFFERENT axis from provenance.confidence. On merge a memory is borderline if any covered member is borderline UNLESS >=2 distinct conversations corroborate it (independent conversations resolve a single-source doubt).",
+      "properties": {
+        "level": {
+          "type": "string",
+          "description": "confident = trusted; borderline = needs review.",
+          "enum": [
+            "confident",
+            "borderline"
+          ]
+        },
+        "note": {
+          "type": "string",
+          "description": "Reason a memory is borderline (carried from the first borderline member); empty string when confident. Always a string, never null."
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "confidence",
+        "corroboration"
+      ],
+      "description": "CODE-STAMPED grouped provenance: the memory-level confidence annotation plus the independent-support corroboration counts.",
+      "properties": {
+        "confidence": {
+          "type": "string",
+          "description": "CODE-STAMPED annotation (not a filter): how well the memory's evidence quotes are authored for its type, over their per-quote effective authorship. `high` = every quote is admissibly and positively authored (human_prose for preference, convention and intention; human_prose, model_generated or tool_output for fact, decision, caution and failed-attempt); `uncertain` = no positively inadmissible quote, but at least one lacks a signal (unknown or null); `low` = at least one quote is positively inadmissible (template_boilerplate for any type; tool_output or model_generated for preference, convention or intention). Recomputed on merge from the final evidence set against the final type. Nothing is dropped for it.",
+          "enum": [
+            "high",
+            "uncertain",
+            "low"
+          ]
+        },
+        "corroboration": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "distinct_arms",
+            "distinct_conversations",
+            "source_arms",
+            "source_conversation_ids"
+          ],
+          "description": "CODE-STAMPED (merge only) independent-support counts. Only distinct CONVERSATIONS corroborate — two arms reading the same conversation is one source seen twice, not two.",
+          "properties": {
+            "distinct_arms": {
+              "type": "integer",
+              "description": "How many distinct extraction arms produced a member of this memory."
+            },
+            "distinct_conversations": {
+              "type": "integer",
+              "description": "How many distinct source conversations back this memory."
+            },
+            "source_arms": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "The distinct arms (`facts`, `preferences`), in that order."
+            },
+            "source_conversation_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "The distinct source conversation ids, sorted."
+            }
+          }
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "description": "MODEL-PROPOSED, CODE-VERIFIED supporting quotes. Every item passed the evidence gate: the quote matches the cited turn once case, whitespace, curly quotes and NFKC compatibility forms are folded, spoken by the cited speaker, in that source conversation. A memory with no surviving evidence is dropped, so this is never empty.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "quote",
+          "turn",
+          "speaker"
+        ],
+        "properties": {
+          "quote": {
+            "type": "string",
+            "description": "The stretch of the cited turn the quote matched, as the session holds it."
+          },
+          "turn": {
+            "type": "integer",
+            "description": "1-based index of the turn the quote came from."
+          },
+          "speaker": {
+            "type": "string",
+            "description": "Role that spoke the cited turn; an assistant quote can never back a person-attributed memory.",
+            "enum": [
+              "user",
+              "assistant"
+            ]
+          },
+          "conversation_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Which source conversation the quote came from, so every quote stays traceable."
+          },
+          "arm": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "CODE-STAMPED which extraction arm (`facts` or `preferences`) contributed this evidence item."
+          },
+          "authorship": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "CODE-STAMPED per-quote effective authorship (the carried inner authorship when the quote falls solely within an envelope's inner span, else the turn's own): human_prose | model_generated | template_boilerplate | tool_output | unknown. Null when the turn could not be attributed. Feeds `provenance.confidence`.",
+            "enum": [
+              "human_prose",
+              "model_generated",
+              "template_boilerplate",
+              "tool_output",
+              "unknown",
+              null
+            ]
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,315 @@
+{
+  "facts:2026-09-03": {
+    "window_summary": "A worktree dev server failed on a node_modules symlink.",
+    "memories": [
+      {
+        "statement": "In shop, run pnpm install --frozen-lockfile in each worktree instead of symlinking node_modules from the main checkout, because Turbopack refuses a node_modules outside the project root.",
+        "description": "The worktree setup script now removes a stale node_modules symlink and installs with pnpm. The same holds for any repo in the dev org that builds with Turbopack.",
+        "type": "decision",
+        "secondary_type": "convention",
+        "scope_level": "repo",
+        "scope_ref": "dev/shop",
+        "scope_applicable_level": "org",
+        "scope_applicable_ref": "dev",
+        "generality": "general-principle",
+        "valid_as_of": "2026-09-03",
+        "temporal_kind": "dated",
+        "volatility": "med",
+        "decision_outcome": "Adopted pnpm install per worktree; rejected symlinking node_modules.",
+        "intention_meta": null,
+        "tags": {
+          "domain": "developer-tooling",
+          "activity": "coding",
+          "component": [
+            "worktree-setup"
+          ],
+          "tech": [
+            "pnpm"
+          ],
+          "concept": [
+            "dependency-resolution"
+          ],
+          "keyword": [
+            "frozen-lockfile"
+          ]
+        },
+        "evidence": [
+          {
+            "quote": "run pnpm install --frozen-lockfile in each worktree instead",
+            "turn": 4,
+            "speaker": "user"
+          }
+        ],
+        "disposition": {
+          "level": "borderline",
+          "note": "Decided in one session; no other worktree has confirmed the new setup script yet."
+        }
+      },
+      {
+        "statement": "Turbopack refuses a node_modules that resolves outside the project root, so a symlinked node_modules breaks the shop dev server in a worktree.",
+        "description": "The worktree's node_modules was a symlink to the main checkout, and the dev server failed until it was replaced.",
+        "type": "caution",
+        "secondary_type": null,
+        "scope_level": "repo",
+        "scope_ref": "dev/shop",
+        "scope_applicable_level": null,
+        "scope_applicable_ref": null,
+        "generality": "instance-specific",
+        "valid_as_of": null,
+        "temporal_kind": "timeless",
+        "volatility": "low",
+        "decision_outcome": null,
+        "intention_meta": null,
+        "tags": {
+          "domain": "developer-tooling",
+          "activity": "debugging",
+          "component": [
+            "worktree-setup"
+          ],
+          "tech": [
+            "turbopack",
+            "pnpm"
+          ],
+          "concept": [
+            "symlink"
+          ],
+          "keyword": [
+            "node_modules"
+          ]
+        },
+        "evidence": [
+          {
+            "quote": "Turbopack says node_modules resolves outside the project root",
+            "turn": 1,
+            "speaker": "user"
+          }
+        ],
+        "disposition": {
+          "level": "confident",
+          "note": ""
+        }
+      }
+    ]
+  },
+  "preferences:2026-09-03": {
+    "window_summary": "Review comment tone and worktree dependencies.",
+    "memories": [
+      {
+        "statement": "Phrase code review comments as questions, not directives.",
+        "description": "Stated directly as a preference for how review feedback is written.",
+        "type": "preference",
+        "secondary_type": null,
+        "scope_level": "personal",
+        "scope_ref": null,
+        "scope_applicable_level": null,
+        "scope_applicable_ref": null,
+        "generality": "general-principle",
+        "valid_as_of": null,
+        "temporal_kind": "timeless",
+        "volatility": "low",
+        "decision_outcome": null,
+        "intention_meta": null,
+        "tags": {
+          "domain": "code-review",
+          "activity": "reviewing",
+          "component": [],
+          "tech": [],
+          "concept": [
+            "review-tone"
+          ],
+          "keyword": [
+            "questions"
+          ]
+        },
+        "evidence": [
+          {
+            "quote": "I prefer review comments phrased as questions, not directives.",
+            "turn": 6,
+            "speaker": "user"
+          }
+        ],
+        "disposition": {
+          "level": "confident",
+          "note": ""
+        }
+      },
+      {
+        "statement": "Never symlink node_modules into a shop worktree.",
+        "description": "Given as a standing rule after the worktree dev server failed on a symlink.",
+        "type": "convention",
+        "secondary_type": null,
+        "scope_level": "repo",
+        "scope_ref": "dev/shop",
+        "scope_applicable_level": null,
+        "scope_applicable_ref": null,
+        "generality": "instance-specific",
+        "valid_as_of": null,
+        "temporal_kind": "timeless",
+        "volatility": "low",
+        "decision_outcome": null,
+        "intention_meta": null,
+        "tags": {
+          "domain": "developer-tooling",
+          "activity": "coding",
+          "component": [
+            "worktree-setup"
+          ],
+          "tech": [
+            "pnpm"
+          ],
+          "concept": [
+            "symlink"
+          ],
+          "keyword": [
+            "node_modules"
+          ]
+        },
+        "evidence": [
+          {
+            "quote": "don't symlink node_modules, turbopack refuses it.",
+            "turn": 4,
+            "speaker": "user"
+          }
+        ],
+        "disposition": {
+          "level": "confident",
+          "note": ""
+        }
+      }
+    ]
+  },
+  "facts:2026-09-15": {
+    "window_summary": "A billing retry double-charged a customer.",
+    "memories": [
+      {
+        "statement": "Generating a fresh idempotency key for each billing retry attempt double-charged customers.",
+        "description": "The approach was tried and reverted because each attempt looked like a new charge to the payment provider.",
+        "type": "failed-attempt",
+        "secondary_type": null,
+        "scope_level": "service",
+        "scope_ref": "billing",
+        "scope_applicable_level": null,
+        "scope_applicable_ref": null,
+        "generality": "instance-specific",
+        "valid_as_of": null,
+        "temporal_kind": "episodic",
+        "volatility": "low",
+        "decision_outcome": null,
+        "intention_meta": null,
+        "tags": {
+          "domain": "payments",
+          "activity": "incident",
+          "component": [
+            "billing-retry-job"
+          ],
+          "tech": [],
+          "concept": [
+            "idempotency"
+          ],
+          "keyword": [
+            "double-charge"
+          ]
+        },
+        "evidence": [
+          {
+            "quote": "we tried generating a fresh key per attempt last month and it double-charged.",
+            "turn": 3,
+            "speaker": "user"
+          }
+        ],
+        "disposition": {
+          "level": "confident",
+          "note": ""
+        }
+      },
+      {
+        "statement": "The billing retry path built a new request without the original Idempotency-Key header, so the payment provider treated each retry as a new charge.",
+        "description": "A customer was charged twice before the retry was fixed to carry the original key.",
+        "type": "caution",
+        "secondary_type": null,
+        "scope_level": "service",
+        "scope_ref": "billing",
+        "scope_applicable_level": null,
+        "scope_applicable_ref": null,
+        "generality": "instance-specific",
+        "valid_as_of": null,
+        "temporal_kind": "timeless",
+        "volatility": "low",
+        "decision_outcome": null,
+        "intention_meta": null,
+        "tags": {
+          "domain": "payments",
+          "activity": "debugging",
+          "component": [
+            "billing-retry-job"
+          ],
+          "tech": [],
+          "concept": [
+            "idempotency",
+            "retries"
+          ],
+          "keyword": [
+            "idempotency-key"
+          ]
+        },
+        "evidence": [
+          {
+            "quote": "builds a new request without the original Idempotency-Key header",
+            "turn": 2,
+            "speaker": "assistant"
+          }
+        ],
+        "disposition": {
+          "level": "confident",
+          "note": ""
+        }
+      }
+    ]
+  },
+  "preferences:2026-09-15": {
+    "window_summary": "How billing retries handle idempotency keys.",
+    "memories": [
+      {
+        "statement": "Always reuse the original idempotency key on billing retries.",
+        "description": "Stated as a team rule after a retry that used a fresh key double-charged a customer.",
+        "type": "convention",
+        "secondary_type": null,
+        "scope_level": "service",
+        "scope_ref": "billing",
+        "scope_applicable_level": null,
+        "scope_applicable_ref": null,
+        "generality": "general-principle",
+        "valid_as_of": null,
+        "temporal_kind": "timeless",
+        "volatility": "low",
+        "decision_outcome": null,
+        "intention_meta": null,
+        "tags": {
+          "domain": "payments",
+          "activity": "coding",
+          "component": [
+            "billing-retry-job"
+          ],
+          "tech": [],
+          "concept": [
+            "idempotency"
+          ],
+          "keyword": [
+            "idempotency-key"
+          ]
+        },
+        "evidence": [
+          {
+            "quote": "always reuse the original idempotency key on billing retries.",
+            "turn": 3,
+            "speaker": "user"
+          }
+        ],
+        "disposition": {
+          "level": "confident",
+          "note": ""
+        }
+      }
+    ]
+  }
+}
